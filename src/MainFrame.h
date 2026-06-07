@@ -20,12 +20,12 @@ class MainFrame final : public wxFrame
 {
 public:
     explicit MainFrame(const wxString& title);
+    void LoadTapeFile(const std::filesystem::path& path);
 
 private:
     void BuildMenuBar();
     void BuildContent();
 
-    void OpenTapeFile(const std::filesystem::path& path);
     void ClearTape();
     void PopulateStructureList();
     void ShowSelectedElement(std::size_t index);

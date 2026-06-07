@@ -123,7 +123,7 @@ void MainFrame::BuildContent()
     panel->SetSizer(sizer);
 }
 
-void MainFrame::OpenTapeFile(const std::filesystem::path& path)
+void MainFrame::LoadTapeFile(const std::filesystem::path& path)
 {
     tap::Reader reader;
     const auto read_result = reader.read(path);
@@ -277,7 +277,7 @@ void MainFrame::OnOpen(wxCommandEvent&)
         return;
     }
 
-    OpenTapeFile(std::filesystem::path(dialog.GetPath().ToStdString()));
+    LoadTapeFile(std::filesystem::path(dialog.GetPath().ToStdString()));
 }
 
 void MainFrame::OnCloseFile(wxCommandEvent&)
