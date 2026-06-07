@@ -30,6 +30,9 @@ TapeProgressDialog::TapeProgressDialog(wxWindow* parent, std::string_view title)
     root->Add(count_label_, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
     SetSizerAndFit(root);
     CentreOnParent();
+    Show();
+    Raise();
+    wxSafeYield(this, true);
 
     Bind(wxEVT_CLOSE_WINDOW, &TapeProgressDialog::OnClose, this);
 }
