@@ -60,6 +60,29 @@ DecoderProperty ToDecoderProperty(const as400::RecordField& field)
     return property;
 }
 
+template <typename T>
+T progressStep(T total)
+{
+    return std::max<T>(1, total / 100);
+}
+
+template <typename T>
+bool shouldUpdateProgress(T current, T total, T& last_bucket, T step)
+{
+    if (total == 0) {
+        return true;
+    }
+
+    const auto bucket = current / step;
+    const auto last = last_bucket / step;
+    if (bucket != last || current == total) {
+        last_bucket = current;
+        return true;
+    }
+
+    return false;
+}
+
 } // namespace
 
 MainFrame::MainFrame(const wxString& title)
@@ -170,8 +193,17 @@ void MainFrame::LoadTapeFile(const std::filesystem::path& path)
     tap::Reader reader;
     const auto read_result = [&]() {
         TapeProgressDialog progress(this, "Loading tape file", "bytes");
-        return reader.read(path, [&progress](const tap::ProgressInfo& info) {
-            progress.SetProgress("Reading tape file...", info.bytes_read, info.bytes_total);
+        std::uint64_t last_progress_bytes = 0;
+        std::uint64_t step = 1;
+        std::uint64_t seen_total = 0;
+        return reader.read(path, [&progress, &last_progress_bytes, &step, &seen_total](const tap::ProgressInfo& info) {
+            if (seen_total != info.bytes_total) {
+                seen_total = info.bytes_total;
+                step = progressStep<std::uint64_t>(std::max<std::uint64_t>(1, info.bytes_total));
+            }
+            if (shouldUpdateProgress(info.bytes_read, info.bytes_total, last_progress_bytes, step)) {
+                progress.SetProgress("Reading tape file...", info.bytes_read, info.bytes_total);
+            }
         });
     }();
     if (!read_result) {
@@ -230,6 +262,8 @@ void MainFrame::PopulateStructureList()
     }
 
     TapeProgressDialog progress(this, "Rendering tape structure", "records");
+    std::size_t last_progress_records = 0;
+    const auto step = progressStep(elements.size());
     for (std::size_t index = 0; index < elements.size(); ++index) {
         const auto view = describeTapeElement(elements[index]);
         const auto row = structure_list_->InsertItem(static_cast<long>(index), wxString::Format("%zu", index));
@@ -238,7 +272,10 @@ void MainFrame::PopulateStructureList()
         structure_list_->SetItem(row, 3, Utf8(view.size));
         structure_list_->SetItem(row, 4, Utf8(view.details));
         structure_list_->SetItemData(row, static_cast<long>(index));
-        progress.SetProgress("Rendering tape structure...", index + 1, elements.size());
+        const auto current = index + 1;
+        if (shouldUpdateProgress(current, elements.size(), last_progress_records, step)) {
+            progress.SetProgress("Rendering tape structure...", current, elements.size());
+        }
     }
 }
 
