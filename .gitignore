@@ -9,3 +9,4 @@ compile_commands.json
 *.dll
 *.exe
 *.pdb
+examples/dist.tap
