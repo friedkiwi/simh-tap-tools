@@ -36,15 +36,26 @@
       "name": "linux-amd64",
       "configurePreset": "linux-amd64",
       "targets": [
-        "simh-tap-tools"
+        "simh-tap-tools",
+        "tap-tests"
       ]
     },
     {
       "name": "windows-amd64-mingw",
       "configurePreset": "windows-amd64-mingw",
       "targets": [
-        "simh-tap-tools"
+        "simh-tap-tools",
+        "tap-tests"
       ]
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "linux-amd64",
+      "configurePreset": "linux-amd64",
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }

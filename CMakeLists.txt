@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+enable_testing()
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
@@ -35,6 +36,28 @@ set(wxUSE_WEBVIEW OFF CACHE BOOL "Use wxWebView" FORCE)
 set(wxUSE_WXHTML_HELP OFF CACHE BOOL "Use wxHTML-based help" FORCE)
 set(wxUSE_XRC OFF CACHE BOOL "Use XRC resources" FORCE)
 
+add_library(tap STATIC
+    src/tap/Error.h
+    src/tap/Reader.cpp
+    src/tap/Reader.h
+    src/tap/Result.h
+    src/tap/Scanner.cpp
+    src/tap/Scanner.h
+    src/tap/SimhFormat.cpp
+    src/tap/SimhFormat.h
+    src/tap/TapeElement.cpp
+    src/tap/TapeElement.h
+    src/tap/TapeImage.cpp
+    src/tap/TapeImage.h
+    src/tap/Writer.cpp
+    src/tap/Writer.h
+)
+
+target_include_directories(tap
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
 add_subdirectory(vendor/wxWidgets)
 
 add_executable(simh-tap-tools WIN32
@@ -46,10 +69,28 @@ add_executable(simh-tap-tools WIN32
 
 target_link_libraries(simh-tap-tools
     PRIVATE
+        tap
         wx::base
         wx::core
 )
 
+add_executable(tap-tests
+    tests/tap/TapTests.cpp
+)
+
+target_link_libraries(tap-tests
+    PRIVATE
+        tap
+)
+
+target_compile_definitions(tap-tests
+    PRIVATE
+        TAP_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples"
+)
+
+add_test(NAME tap-tests COMMAND tap-tests)
+
 if(MINGW)
     target_link_options(simh-tap-tools PRIVATE -static -static-libgcc -static-libstdc++)
+    target_link_options(tap-tests PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
