@@ -601,7 +601,7 @@ void MainFrame::OnAs400FileList(wxCommandEvent&)
     }
 
     As400FileListDialog dialog(this, file_list_entries_);
-    if (dialog.ShowModal() != wxID_CANCEL && dialog.HasSelection()) {
+    if (dialog.ShowModal() == wxID_OK && dialog.HasSelection()) {
         JumpToElement(dialog.SelectedElementIndex());
     }
 }

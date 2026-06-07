@@ -82,5 +82,5 @@ void As400FileListDialog::OnItemActivated(wxListEvent& event)
     }
 
     selected_element_index_ = static_cast<std::size_t>(file_list_->GetItemData(item));
-    EndModal(wxID_CANCEL);
+    EndModal(wxID_OK);
 }
