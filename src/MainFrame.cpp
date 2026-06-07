@@ -580,7 +580,12 @@ void MainFrame::OnAs400FileList(wxCommandEvent&)
         return;
     }
 
-    const auto file_entries = as400::collectAs400FileList(tape_image_, as400_parser_);
+    const auto file_entries = [&]() {
+        TapeProgressDialog progress(this, "Building file list", "records");
+        return as400::collectAs400FileList(tape_image_, as400_parser_, [&progress](const tap::ProgressInfo& info) {
+            progress.SetProgress("Scanning tape records for files...", info.bytes_read, info.bytes_total);
+        });
+    }();
     if (file_entries.empty()) {
         wxMessageBox(
             wxString::FromUTF8("No HDR1 file labels were found on this tape."),

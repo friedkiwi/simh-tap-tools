@@ -22,12 +22,25 @@ std::string fieldValue(const RecordInfo& record, std::string_view name)
 
 std::vector<FileListEntry> collectAs400FileList(
     const tap::TapeImage& image,
-    const RecordParser& parser)
+    const RecordParser& parser,
+    const tap::ProgressCallback& progress)
 {
     std::vector<FileListEntry> entries;
     const auto& elements = image.elements();
+    const auto total = elements.size();
+    const auto step = std::max<std::size_t>(1, total / 100);
+    std::size_t last_bucket = 0;
     for (std::size_t index = 0; index < elements.size(); ++index) {
         const auto& element = elements[index];
+        const auto current = index + 1;
+        const auto bucket = current / step;
+        if (progress && (bucket != last_bucket / step || current == total)) {
+            last_bucket = current;
+            progress(tap::ProgressInfo{
+                current,
+                total,
+            });
+        }
         if (!element.isRecord()) {
             continue;
         }
